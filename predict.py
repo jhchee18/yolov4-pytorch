@@ -3,7 +3,7 @@
 #   整合到了一个py文件中，通过指定mode进行模式的修改。
 #-----------------------------------------------------------------------#
 import time
-
+from urllib.request import urlopen
 import cv2
 import numpy as np
 from PIL import Image
@@ -21,14 +21,14 @@ if __name__ == "__main__":
     #   'heatmap'           表示进行预测结果的热力图可视化，详情查看下方注释。
     #   'export_onnx'       表示将模型导出为onnx，需要pytorch1.7.1以上。
     #----------------------------------------------------------------------------------------------------------#
-    mode = "predict"
+    mode = "video"
     #-------------------------------------------------------------------------#
     #   crop                指定了是否在单张图片预测后对目标进行截取
     #   count               指定了是否进行目标的计数
     #   crop、count仅在mode='predict'时有效
     #-------------------------------------------------------------------------#
     crop            = False
-    count           = False
+    count           = True
     #----------------------------------------------------------------------------------------------------------#
     #   video_path          用于指定视频的路径，当video_path=0时表示检测摄像头
     #                       想要检测视频，则设置如video_path = "xxx.mp4"即可，代表读取出根目录下的xxx.mp4文件。
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     #   video_path、video_save_path和video_fps仅在mode='video'时有效
     #   保存视频时需要ctrl+c退出或者运行到最后一帧才会完成完整的保存步骤。
     #----------------------------------------------------------------------------------------------------------#
-    video_path      = 0
+    video_path      = 'http://192.168.1.251/capture'
     video_save_path = ""
     video_fps       = 25.0
     #----------------------------------------------------------------------------------------------------------#
@@ -92,23 +92,29 @@ if __name__ == "__main__":
                 r_image.show()
 
     elif mode == "video":
-        capture = cv2.VideoCapture(video_path)
+        #capture = cv2.VideoCapture(video_path)
+        capture = urlopen(video_path)
         if video_save_path!="":
             fourcc  = cv2.VideoWriter_fourcc(*'XVID')
             size    = (int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
             out     = cv2.VideoWriter(video_save_path, fourcc, video_fps, size)
 
+        '''
         ref, frame = capture.read()
         if not ref:
             raise ValueError("未能正确读取摄像头（视频），请注意是否正确安装摄像头（是否正确填写视频路径）。")
+            '''
 
         fps = 0.0
         while(True):
             t1 = time.time()
             # 读取某一帧
-            ref, frame = capture.read()
-            if not ref:
-                break
+            #ref, frame = capture.read()
+            #if not ref:
+            #    break
+            img_resp = urlopen(video_path)
+            imgnp = np.asarray(bytearray(img_resp.read()), dtype="uint8")
+            frame = cv2.imdecode(imgnp, -1)
             # 格式转变，BGRtoRGB
             frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
             # 转变成Image

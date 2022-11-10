@@ -13,6 +13,9 @@ import torch.optim as optim
 import gc
 from torch import nn
 from torch.utils.data import DataLoader
+from tqdm import tqdm
+
+from utils.utils import get_lr
 
 from nets.yolo import YoloBody
 from nets.yolo_training import (YOLOLoss, get_lr_scheduler, set_optimizer_lr,
@@ -23,6 +26,164 @@ from utils.utils import get_anchors, get_classes, show_config
 from utils.utils_fit import fit_one_epoch
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+
+
+def fit_one_epoch_local(model_train, model, yolo_loss, loss_history, eval_callback, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val, Epoch, cuda, fp16, scaler, save_period, save_dir, local_rank=0):
+    if Tensorboard:
+        global train_tensorboard_step, val_tensorboard_step
+    loss        = 0
+    val_loss    = 0
+
+    if local_rank == 0:
+        print('Start Train')
+        pbar = tqdm(total=epoch_step,desc=f'Epoch {epoch + 1}/{Epoch}',postfix=dict,mininterval=0.3)
+    model_train.train()
+    for iteration, batch in enumerate(gen):
+        if iteration >= epoch_step:
+            break
+
+        images, targets = batch[0], batch[1]
+        with torch.no_grad():
+            if cuda:
+                images  = images.cuda(local_rank)
+                targets = [ann.cuda(local_rank) for ann in targets]
+        #----------------------#
+        #   清零梯度
+        #----------------------#
+        optimizer.zero_grad()
+        if not fp16:
+            #----------------------#
+            #   前向传播
+            #----------------------#
+            outputs         = model_train(images)
+
+            loss_value_all  = 0
+            #----------------------#
+            #   计算损失
+            #----------------------#
+            for l in range(len(outputs)):
+                loss_item = yolo_loss(l, outputs[l], targets)
+                loss_value_all  += loss_item
+            loss_value = loss_value_all
+
+            #----------------------#
+            #   反向传播
+            #----------------------#
+            loss_value.backward()
+            optimizer.step()
+
+        else:
+            from torch.cuda.amp import autocast
+            with autocast():
+                #----------------------#
+                #   前向传播
+                #----------------------#
+                outputs         = model_train(images)
+
+                loss_value_all  = 0
+                #----------------------#
+                #   计算损失
+                #----------------------#
+                for l in range(len(outputs)):
+                    with torch.cuda.amp.autocast(enabled=False):
+                        predication = outputs[l].float()
+                    loss_item = yolo_loss(l, predication, targets)
+                    loss_value_all  += loss_item
+                loss_value = loss_value_all
+
+            #----------------------#
+            #   反向传播
+            #----------------------#
+            scaler.scale(loss_value).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
+        loss += loss_value.item()
+
+        if Tensorboard:
+                # 将loss写入tensorboard，每一步都写
+                writer.add_scalar('Train_loss', loss_value, train_tensorboard_step)
+                train_tensorboard_step += 1
+        
+        if local_rank == 0:
+            pbar.set_postfix(**{'loss'  : loss / (iteration + 1), 
+                                'lr'    : get_lr(optimizer)})
+            pbar.update(1)
+
+    
+    # 将loss写入tensorboard，下面注释的是每个世代保存一次
+    if Tensorboard:
+        writer.add_scalar('Train_epoch_loss', loss/(iteration+1), epoch)
+
+    if local_rank == 0:
+        pbar.close()
+        print('Finish Train')
+        print('Start Validation')
+        pbar = tqdm(total=epoch_step_val, desc=f'Epoch {epoch + 1}/{Epoch}',postfix=dict,mininterval=0.3)
+
+    model_train.eval()
+    for iteration, batch in enumerate(gen_val):
+        if iteration >= epoch_step_val:
+            break
+        images, targets = batch[0], batch[1]
+        with torch.no_grad():
+            if cuda:
+                images  = images.cuda(local_rank)
+                targets = [ann.cuda(local_rank) for ann in targets]
+            #----------------------#
+            #   清零梯度
+            #----------------------#
+            optimizer.zero_grad()
+            #----------------------#
+            #   前向传播
+            #----------------------#
+            outputs         = model_train(images)
+
+            loss_value_all  = 0
+            #----------------------#
+            #   计算损失
+            #----------------------#
+            for l in range(len(outputs)):
+                loss_item = yolo_loss(l, outputs[l], targets)
+                loss_value_all  += loss_item
+            loss_value  = loss_value_all
+
+        #将loss写入tensorboard, 下面注释的是每一步都写
+        if Tensorboard:
+            writer.add_scalar('Val_loss', loss_value, val_tensorboard_step)
+            val_tensorboard_step += 1
+
+        val_loss += loss_value.item()
+        if local_rank == 0:
+            pbar.set_postfix(**{'val_loss': val_loss / (iteration + 1)})
+            pbar.update(1)
+
+    # 将loss写入tensorboard，每个世代保存一次
+    if Tensorboard:
+        writer.add_scalar('Val_epoch_loss',val_loss / epoch_step_val, epoch)
+
+    if local_rank == 0:
+        pbar.close()
+        print('Finish Validation')
+        loss_history.append_loss(epoch + 1, loss / epoch_step, val_loss / epoch_step_val)
+        eval_callback.on_epoch_end(epoch + 1, model_train)
+        print('Epoch:'+ str(epoch + 1) + '/' + str(Epoch))
+        print('Total Loss: %.3f || Val Loss: %.3f ' % (loss / epoch_step, val_loss / epoch_step_val))
+        
+        #-----------------------------------------------#
+        #   保存权值
+        #-----------------------------------------------#
+        if (epoch + 1) % save_period == 0 or epoch + 1 == Epoch:
+            torch.save(model.state_dict(), os.path.join(save_dir, "ep%03d-loss%.3f-val_loss%.3f.pth" % (epoch + 1, loss / epoch_step, val_loss / epoch_step_val)))
+
+        if len(loss_history.val_loss) <= 1 or (val_loss / epoch_step_val) <= min(loss_history.val_loss):
+            print('Save best model to best_epoch_weights.pth')
+            torch.save(model.state_dict(), os.path.join(save_dir, "best_epoch_weights.pth"))
+            
+        torch.save(model.state_dict(), os.path.join(save_dir, "last_epoch_weights.pth"))
+
+
 
 '''
 训练自己的目标检测模型一定需要注意以下几点：
@@ -41,6 +202,10 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
    如果只是训练了几个Step是不会保存的，Epoch和Step的概念要捋清楚一下。
 '''
 if __name__ == "__main__":
+    #-------------------------------#
+    #   是否使用Tensorboard
+    #-------------------------------#
+    Tensorboard = True
     #---------------------------------#
     #   Cuda    是否使用Cuda
     #           没有GPU可以设置成False
@@ -66,12 +231,12 @@ if __name__ == "__main__":
     #   fp16        是否使用混合精度训练
     #               可减少约一半的显存、需要pytorch1.7.1以上
     #---------------------------------------------------------------------#
-    fp16            = False
+    fp16            = True
     #---------------------------------------------------------------------#
     #   classes_path    指向model_data下的txt，与自己训练的数据集相关 
     #                   训练前一定要修改classes_path，使其对应自己的数据集
     #---------------------------------------------------------------------#
-    classes_path    = 'model_data/dbm_class.txt'
+    classes_path    = 'model_data/leaf_and_dbm_classes.txt'
     #---------------------------------------------------------------------#
     #   anchors_path    代表先验框对应的txt文件，一般不修改。
     #   anchors_mask    用于帮助代码找到对应的先验框，一般不修改。
@@ -242,7 +407,7 @@ if __name__ == "__main__":
     #------------------------------------------------------------------#
     #   save_dir        权值与日志文件保存的文件夹
     #------------------------------------------------------------------#
-    save_dir            = 'logs'
+    save_dir            = "/media/howard/2020-2020/logs" #'logs'
     #------------------------------------------------------------------#
     #   eval_flag       是否在训练时进行评估，评估对象为验证集
     #                   安装pycocotools库后，评估体验更佳。
@@ -265,8 +430,8 @@ if __name__ == "__main__":
     #   train_annotation_path   训练图片路径和标签
     #   val_annotation_path     验证图片路径和标签
     #------------------------------------------------------#
-    train_annotation_path   = '2007_train.txt'
-    val_annotation_path     = '2007_val.txt'
+    train_annotation_path   = './annotations/annotations_train_leaf_and_dbm.txt'
+    val_annotation_path     = './annotations/annotations_valid_leaf_and_dbm.txt'
 
     #------------------------------------------------------#
     #   设置用到的显卡
@@ -379,6 +544,17 @@ if __name__ == "__main__":
         val_lines   = f.readlines()
     num_train   = len(train_lines)
     num_val     = len(val_lines)
+
+    if Tensorboard:
+        from torch.utils.tensorboard import SummaryWriter
+        writer = SummaryWriter(log_dir='logs',flush_secs=60)
+        if Cuda:
+            graph_inputs = torch.randn(1,3,input_shape[0],input_shape[1]).type(torch.FloatTensor).cuda()
+        else:
+            graph_inputs = torch.randn(1,3,input_shape[0],input_shape[1]).type(torch.FloatTensor)
+        writer.add_graph(model, graph_inputs)
+        train_tensorboard_step  = 1
+        val_tensorboard_step    = 1
 
     if local_rank == 0:
         show_config(
@@ -550,7 +726,7 @@ if __name__ == "__main__":
 
             set_optimizer_lr(optimizer, lr_scheduler_func, epoch)
 
-            fit_one_epoch(model_train, model, yolo_loss, loss_history, eval_callback, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val, UnFreeze_Epoch, Cuda, fp16, scaler, save_period, save_dir, local_rank)
+            fit_one_epoch_local(model_train, model, yolo_loss, loss_history, eval_callback, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val, UnFreeze_Epoch, Cuda, fp16, scaler, save_period, save_dir, local_rank)
                         
             if distributed:
                 dist.barrier()

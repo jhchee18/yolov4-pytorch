@@ -1,0 +1,7 @@
+5
+Black_rot
+Downey_mildew
+Esca_Black_Measles
+Healthy
+Leaf_blight_Isariopsis_Leaf_Spot
+Powdery_mildew

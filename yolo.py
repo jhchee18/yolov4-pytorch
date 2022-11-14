@@ -26,7 +26,7 @@ class YOLO(object):
         #   如果出现shape不匹配，同时要注意训练时的model_path和classes_path参数的修改
         #--------------------------------------------------------------------------#
         "model_path"        : 'model_data/best_epoch_weights.pth',
-        "classes_path"      : 'model_data/whitefly_class.txt',
+        "classes_path"      : 'model_data/leaf_and_dbm_classes.txt',
         #---------------------------------------------------------------------#
         #   anchors_path代表先验框对应的txt文件，一般不修改。
         #   anchors_mask用于帮助代码找到对应的先验框，一般不修改。
@@ -40,7 +40,7 @@ class YOLO(object):
         #---------------------------------------------------------------------#
         #   只有得分大于置信度的预测框会被保留下来
         #---------------------------------------------------------------------#
-        "confidence"        : 0.05,
+        "confidence"        : 0.50,
         #---------------------------------------------------------------------#
         #   非极大抑制所用到的nms_iou大小
         #---------------------------------------------------------------------#
@@ -147,7 +147,7 @@ class YOLO(object):
                                                     
             if results[0] is None: 
                 print("No class is detected")
-                return image
+                return [image, 0]
 
             top_label   = np.array(results[0][:, 6], dtype = 'int32')
             top_conf    = results[0][:, 4] * results[0][:, 5]
@@ -218,7 +218,7 @@ class YOLO(object):
             draw.text(text_origin, str(label,'UTF-8'), fill=(0, 0, 0), font=font)
             del draw
 
-        return image
+        return [image, score]
 
     def get_FPS(self, image, test_interval):
         image_shape = np.array(np.shape(image)[0:2])

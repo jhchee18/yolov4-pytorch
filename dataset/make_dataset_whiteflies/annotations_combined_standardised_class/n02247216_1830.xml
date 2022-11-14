@@ -1,0 +1,26 @@
+<annotation>
+	<folder>JPEGImages</folder>
+	<filename>n02247216_1830.JPEG</filename>
+	<path>C:\Users\jhchee\Documents\make_dataset_whiteflies\JPEGImages\n02247216_1830.JPEG</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>84</width>
+		<height>76</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>whitefly</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>22</xmin>
+			<ymin>20</ymin>
+			<xmax>59</xmax>
+			<ymax>58</ymax>
+		</bndbox>
+	</object>
+</annotation>

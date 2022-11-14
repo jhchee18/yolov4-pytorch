@@ -1,0 +1,37 @@
+<annotation>
+	<folder>n02247216</folder>
+	<filename>n02247216_2043</filename>
+	<source>
+		<database>ImageNet database</database>
+	</source>
+	<size>
+		<width>193</width>
+		<height>161</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>whitefly</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>49</xmin>
+			<ymin>80</ymin>
+			<xmax>119</xmax>
+			<ymax>139</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>whitefly</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>87</xmin>
+			<ymin>22</ymin>
+			<xmax>146</xmax>
+			<ymax>75</ymax>
+		</bndbox>
+	</object>
+</annotation>

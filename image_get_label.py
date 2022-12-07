@@ -14,7 +14,7 @@ import cv2
 import time
 import random
 import os
-from strawberry_stem_detect import get_img_label, get_label_from_imgdataset, get_stem_label_from_cropped_dataset
+from strawberry_stem_detect import get_label_from_imgdataset
 
 class Imageprocess:
     #只能保存单个的
@@ -34,21 +34,16 @@ class Imageprocess:
             img_input_color = img_input_color[:, :, (2, 1, 0)]
             return img_input_color
 
-        imageout, self.strawberrybox, _, self.stemimg, self.stembox = result
+        imageout, self.strawberrybox = result
         
         self.imgname = 'IMG'+str(time.time()) + '.' + str(random.randint(1000, 9999))
 
         print('strawberry bounding box:')
         print(self.strawberrybox)
 
-        if not self.stembox is None:
-            print('stem bounding box:')
-            print(self.stembox)
 
         self.strawberrybox = self.modify_label(self.strawberryimg,self.strawberrybox)
         
-        if not self.stembox is None:
-            self.stembox = self.modify_label(self.stemimg,self.stembox)
 
         #self.image_save(file_name)
         self.bbox_save(file_name)
@@ -87,11 +82,11 @@ class Imageprocess:
 
 if __name__ == '__main__':
     # Create image class
-    save_path='./dataset/Strawberry-30.9.21'
+    save_path='./dataset/dataset_leaf_and_dbm/test'
     improcess = Imageprocess(save_path)
-    typename = ["strawberry", "stem"]
+    typename = ["DBM", "black_fungi", "mildew", "healthy"]
     filename = ["image", "label"]
-    directory = save_path + "/strawberry/image"
+    directory = save_path + "/auto_label_image"
 
     for i in typename:
         for j in filename:

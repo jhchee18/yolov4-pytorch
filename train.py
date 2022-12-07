@@ -403,7 +403,7 @@ if __name__ == "__main__":
     #------------------------------------------------------------------#
     #   save_period     多少个epoch保存一次权值
     #------------------------------------------------------------------#
-    save_period         = 10
+    save_period         = 20
     #------------------------------------------------------------------#
     #   save_dir        权值与日志文件保存的文件夹
     #------------------------------------------------------------------#
@@ -430,8 +430,8 @@ if __name__ == "__main__":
     #   train_annotation_path   训练图片路径和标签
     #   val_annotation_path     验证图片路径和标签
     #------------------------------------------------------#
-    train_annotation_path   = './annotations/annotations_train_leaf_and_dbm.txt'
-    val_annotation_path     = './annotations/annotations_valid_leaf_and_dbm.txt'
+    train_annotation_path   = './annotations/annotations_train_leaf_fungi.txt'
+    val_annotation_path     = './annotations/annotations_valid_leaf_fungi.txt'
 
     #------------------------------------------------------#
     #   设置用到的显卡

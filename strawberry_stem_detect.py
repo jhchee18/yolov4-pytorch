@@ -4,16 +4,19 @@ import colorsys
 import numpy as np
 import tkinter.filedialog
 from PIL import Image, ImageDraw
-from yolostem import Yolostem
-from yolostrawberry import Yolostrawberry
+#from yolostem import Yolostem
+#from yolostrawberry import Yolostrawberry
+from yolo_get_label import YOLO
 #from yolostrawberry_real import Yolostrawberry
 #图像原点在左上角
 
 image_dir = "img/valid"
 crop_save_dir = 'img/imgcrop'
 
-yolo_stage1 = Yolostrawberry()
-yolo_stage2 = Yolostem()
+#yolo_stage1 = Yolostrawberry()
+#yolo_stage2 = Yolostem()
+
+yolo = YOLO()
 
 
 def pil(img):
@@ -169,7 +172,7 @@ def draw_rectangle(img,finalbox,bias,tan,color_index):
     img.paste(background, (int(leftpaste), int(toppaste)), mask=squaremask)
     return img
 
-
+"""
 def get_pick_img(image_in):
     #input image type:np
     #output the stem area in strawberry picture
@@ -261,19 +264,22 @@ def get_img_label(image_in):
             stem_box_in_strawberry =np.asarray([top, left, bottom, right])
         return image,boxes[i],stem_box_in_strawberry,strawberry_image,stem_boxes[j]
 
-
+"""
 def get_label_from_imgdataset(image_in):
     #input image type:np
     #output the stem area in strawberry picture
     #choose the first stem(type pil) 可拓展
     image = image_in.copy()
-    boxes = yolo_stage1.detect_boxes(image)
+    boxes = yolo.detect_boxes(image)
     # the boxes are set by np.array([None]). Not means the boxes is None.
     if boxes is None:
         return
     #print('strawberry bounding box:')
     #print(boxes)
     x, y = boxes.shape
+    return image, boxes
+    
+    
     for i in range(x):
         strawberry_image = crop_bbox(image, boxes[i])
         # Second stage: find the stem
@@ -306,6 +312,7 @@ def get_label_from_imgdataset(image_in):
             stem_box_in_strawberry =np.asarray([top, left, bottom, right])
         return image,boxes[i],stem_box_in_strawberry,strawberry_image,stem_boxes[j]
 
+"""
 def get_stem_label_from_cropped_dataset(image_in):
     #input image type:np
     #output the stem area in strawberry picture
@@ -350,15 +357,16 @@ def get_stem_label_from_cropped_dataset(image_in):
             stem_box_in_strawberry =np.asarray([top, left, bottom, right])
         return image,boxes[i],stem_box_in_strawberry,strawberry_image,stem_boxes[j]
 
+"""
 if __name__ == "__main__":
-    yolo_stage1 = Yolostrawberry()
-    yolo_stage2 = Yolostem()
+    yolo = YOLO()
 
     #save_stemimg_dir()
 
     while True:
         #two open modes
         mode = 1
+
         if mode == 0:
             img_name = input('Input image filename:')
             assert img_name != 'stop'

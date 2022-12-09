@@ -15,6 +15,12 @@ initial_battery = me.get_battery()
 global img
 me.streamon()
 
+# mode 1: normal fly mode
+# mode 2: capture mode, capture images consecutively
+mode = 1
+
+
+
 
 def getKeyboardInput():
     lr, fb, ud, yv = 0, 0, 0, 0
@@ -44,8 +50,10 @@ def getKeyboardInput():
         show_battery()
         return False
     if kp.getKey("z"):
-        cv2.imwrite(f'drone/images/{time.time()}.jpg', img)
+        cv2.imwrite(f'dataset/dataset_camera_leaf/{time.time()}.jpg', img)
         time.sleep(0.3)
+
+
     return [lr, fb, ud, yv]
 
 
@@ -85,18 +93,34 @@ def cv_detect(frame):
 global fps
 fps = 0.0
 '''
-while True:
-    vals = getKeyboardInput()
-    if (vals == False):
-        me.streamoff()
-        cv2.destroyAllWindows()
-        break
-    else:
-        me.send_rc_control(vals[0], vals[1], vals[2], vals[3])
+
+if mode == 1:
+    while True:
+        vals = getKeyboardInput()
+        if (vals == False):
+            me.streamoff()
+            cv2.destroyAllWindows()
+            break
+        else:
+            me.send_rc_control(vals[0], vals[1], vals[2], vals[3])
+            img = me.get_frame_read().frame
+            img = cv_detect(img)
+            #img = cv2.resize(img, (360, 240))
+            cv2.imshow("Drone Camera", img)
+            cv2.waitKey(1)
+
+        time.sleep(0.05)
+
+elif mode == 2:
+    while True:
+        me.send_rc_control(0, 0, 0, 0)
         img = me.get_frame_read().frame
         #img = cv_detect(img)
         #img = cv2.resize(img, (360, 240))
         cv2.imshow("Drone Camera", img)
+        cv2.imwrite(f'dataset/dataset_camera_leaf/{time.time()}.jpg', img)
+        time.sleep(1)
         cv2.waitKey(1)
+        
 
-    time.sleep(0.05)
+        time.sleep(0.05)

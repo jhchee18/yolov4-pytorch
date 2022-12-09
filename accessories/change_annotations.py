@@ -2,6 +2,9 @@ from calendar import c
 from fileinput import filename
 import os
 import string
+import os
+import numpy as np
+from PIL import Image
 
 # filename = "C:/Users/jhchee/Documents/dataset_leaf_scorch/valid/_annotations_2007.txt"
 
@@ -125,6 +128,65 @@ def replace_class_num():
     print("done")
 
 
-get_full_annotation_pc()
+
+label_directory = ".\dataset\dataset_drone_leaf_08_12_2022\label"
+combined_annotation_filename = ".\dataset\dataset_drone_leaf_08_12_2022\combined_annotation.txt"
+image_directory = "./dataset/dataset_leaf_and_dbm/train_valid/"
+
+def combine_annotation():
+    combined_annotation_text = ""
+    for filename in os.listdir(label_directory):
+
+        f = os.path.join(label_directory, filename)
+        file = open(f, "r")
+        annotation = ""
+        for line in file:
+            changes = ""
+            changes = " " + line.split("\n", 1)[0]
+            annotation = annotation + changes
+        combined_annotation_text = combined_annotation_text + image_directory + filename.split(".txt", 1)[0] + ".jpg" + annotation + "\n"
+        file.close()
+
+    fout = open(combined_annotation_filename, "w")
+    fout.write(combined_annotation_text)
+    fout.close()
+    print("done")
+
+
+train_annotation_file = ".\dataset\dataset_drone_leaf_08_12_2022/train_annotation.txt"
+valid_annotation_file = ".\dataset\dataset_drone_leaf_08_12_2022/valid_annotation.txt"
+
+def split_annotation_train_and_valid():
+    f = combined_annotation_filename
+    # opening the file in read mode
+    file = open(f, "r")
+
+    train_annotation = ""
+    valid_annotation = ""
+    counter = 0
+    # using the for loop
+    for line in file:
+        counter += 1
+        changes = line
+        if (counter % 5 != 0):
+            train_annotation = train_annotation + changes
+        else:
+            valid_annotation = valid_annotation + changes
+
+    file.close()
+    # opening the file in write mode
+    ftrainout = open(train_annotation_file, "w")
+    ftrainout.write(train_annotation)
+    ftrainout.close()
+
+    fvalidout = open(valid_annotation_file, "w")
+    fvalidout.write(valid_annotation)
+    fvalidout.close()
+
+    print("done")
+
+#get_full_annotation_pc()
 #replace_class_num()
 #attach_suffix()
+#combine_annotation()
+split_annotation_train_and_valid()

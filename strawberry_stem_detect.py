@@ -270,14 +270,16 @@ def get_label_from_imgdataset(image_in):
     #output the stem area in strawberry picture
     #choose the first stem(type pil) 可拓展
     image = image_in.copy()
-    boxes = yolo.detect_boxes(image)
+    results = yolo.detect_boxes(image)
     # the boxes are set by np.array([None]). Not means the boxes is None.
-    if boxes is None:
-        return
+    if results is None:
+        return None
+    boxes, classes = results
     #print('strawberry bounding box:')
     #print(boxes)
-    x, y = boxes.shape
-    return image, boxes
+    #x, y = boxes.shape
+
+    return image, boxes, classes
     
     
     for i in range(x):

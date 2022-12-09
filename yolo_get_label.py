@@ -148,22 +148,24 @@ class YOLO(object):
                                                     
             if results[0] is None: 
                 print("No class is detected")
-                return [image, 0]
+                return None
 
             top_label   = np.array(results[0][:, 6], dtype = 'int32')
             top_conf    = results[0][:, 4] * results[0][:, 5]
             top_boxes   = results[0][:, :4]
             top_xmin, top_ymin, top_xmax, top_ymax = np.expand_dims(top_boxes[:, 0], -1), np.expand_dims(
                 top_boxes[:, 1], -1), np.expand_dims(top_boxes[:, 2], -1), np.expand_dims(top_boxes[:, 3], -1)
-        
-            top_xmin = top_xmin / self.model_image_size[1] * image_shape[1]
-            top_ymin = top_ymin / self.model_image_size[0] * image_shape[0]
-            top_xmax = top_xmax / self.model_image_size[1] * image_shape[1]
-            top_ymax = top_ymax / self.model_image_size[0] * image_shape[0]
+
+            '''
+            top_xmin = top_xmin / self.input_shape[1] * image_shape[1]
+            top_ymin = top_ymin / self.input_shape[0] * image_shape[0]
+            top_xmax = top_xmax / self.input_shape[1] * image_shape[1]
+            top_ymax = top_ymax / self.input_shape[0] * image_shape[0]
+            '''
             boxes = np.concatenate([top_ymin, top_xmin, top_ymax, top_xmax], axis=-1)
         
         boxes = (abs(boxes)+boxes)/2
-        return boxes
+        return boxes, top_label
         
         
         

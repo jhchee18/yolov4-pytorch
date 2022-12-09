@@ -7,7 +7,7 @@
 ##      Open CV and Numpy integration        ##
 ###############################################
 
-import pyrealsense2 as rs
+#import pyrealsense2 as rs
 import numpy as np
 from PIL import Image
 import cv2
@@ -30,21 +30,21 @@ class Imageprocess:
         img_input_color = img_input_color[:,:,(2,1,0)]
         self.strawberryimg = Image.fromarray(cv2.cvtColor(img_input_color, cv2.COLOR_BGR2RGB))
         result = get_label_from_imgdataset(self.strawberryimg)
-        if not result:
+        if result is None:
+            self.strawberrybox = None
+            self.bbox_save(file_name)
             img_input_color = img_input_color[:, :, (2, 1, 0)]
             return img_input_color
 
-        imageout, self.strawberrybox = result
+        imageout, self.strawberrybox, self.classes = result
         
         self.imgname = 'IMG'+str(time.time()) + '.' + str(random.randint(1000, 9999))
 
-        print('strawberry bounding box:')
-        print(self.strawberrybox)
-
-
-        self.strawberrybox = self.modify_label(self.strawberryimg,self.strawberrybox)
+        #print('strawberry bounding box:')
+        #print(self.strawberrybox)
+            
+        self.strawberrybox = self.modify_label(self.strawberryimg, self.strawberrybox)
         
-
         #self.image_save(file_name)
         self.bbox_save(file_name)
         imageout = np.array(imageout)
@@ -52,29 +52,42 @@ class Imageprocess:
         return imageout
 
     def modify_label(self,img,bbox):
-        top, left, bottom, right = bbox
-        width,height = img.size
-        centerw = (left+right)/width/2
-        centerh = (top+bottom)/height/2
-        bboxw = (right-left)/width
-        bboxh = (bottom-top)/height
-        #0 is class
-        bbox_out = [0,centerw,centerh,bboxw,bboxh]
-        bbox_out=[' '.join(str(x) for x in bbox_out)]
-        return bbox_out
-
+        height, width = img.size
+        bbox_out_all = []
+        print(bbox.size)
+        for i in range((int) (bbox.size/4)):
+            top, left, bottom, right = bbox[i]
+            centerw = (left+right)/width/2
+            centerh = (top+bottom)/height/2
+            bboxw = (right-left)/width
+            bboxh = (bottom-top)/height
+            #0 is class
+            bbox_out = [self.classes[i], centerh, centerw, bboxh, bboxw]
+            #bbox_out = [self.classes[i], top, left, bottom, right]
+            bbox_out=[' '.join(str(x) for x in bbox_out)]
+            bbox_out_all.append(bbox_out)
+        return bbox_out_all
+    '''
     def image_save(self,file_name):
         #input: strawberry path, stem path, image
         #set save name: according to the time
         #output: original image, stem image
         #self.strawberryimg.save(self.save_path+'/strawberry/image/Strawberry'+self.imgname+'.jpg')
         if not self.stembox is None:
-            self.stemimg.save(self.save_path+'/stem/image/' + file_name[0:-4] + '.jpg')
+            self.stemimg.save(self.save_path + '/stem/image/' + file_name[0:-4] + '.jpg')
+    '''
 
     def bbox_save(self,file_name):
         #input: image,bbox
         #output: strawberry bbox, stem bbox. Image name, bbox, classes.
-        np.savetxt(self.save_path+'/strawberry/label/'+ file_name[0:-4] +'.txt', self.strawberrybox, fmt='%s')
+        label_txt = ""
+        if (not self.strawberrybox is None):
+            for i in self.strawberrybox:
+                label_txt += i[0] + "\n"
+        #np.savetxt(self.save_path + '/test_label/'+ file_name[0:-4] + '.txt', label_txt, fmt='%s')
+        fp = open(self.save_path + '/../label_3/'+ file_name[0:-4] + '.txt', 'w')
+        fp.write(label_txt)
+        fp.close()
         
         #if not self.stembox is None:
         #    np.savetxt(self.save_path + '/stem/label/' + file_name[0:-4] + '.txt', self.stembox, fmt='%s')
@@ -82,16 +95,18 @@ class Imageprocess:
 
 if __name__ == '__main__':
     # Create image class
-    save_path='./dataset/dataset_leaf_and_dbm/test'
+    save_path='./dataset/dataset_drone_leaf_08_12_2022/image'
     improcess = Imageprocess(save_path)
     typename = ["DBM", "black_fungi", "mildew", "healthy"]
     filename = ["image", "label"]
-    directory = save_path + "/auto_label_image"
+    directory = save_path
 
+    '''
     for i in typename:
         for j in filename:
             if not os.path.exists(save_path+'/' + i + '/' + j):
                 os.makedirs(save_path+'/'+ i + '/' + j)
+                '''
 
 
     for file_name in os.listdir(directory):
@@ -102,6 +117,7 @@ if __name__ == '__main__':
         np_color_image = np.asanyarray(color_img)
         color_image = improcess.img_process(np_color_image, file_name)
         
+    print("done!")
 
 
     

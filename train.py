@@ -430,8 +430,8 @@ if __name__ == "__main__":
     #   train_annotation_path   训练图片路径和标签
     #   val_annotation_path     验证图片路径和标签
     #------------------------------------------------------#
-    train_annotation_path   = './annotations/annotations_train_leaf_fungi.txt'
-    val_annotation_path     = './annotations/annotations_valid_leaf_fungi.txt'
+    train_annotation_path   = './annotations/annotations_train_leaf_and_dbm.txt'
+    val_annotation_path     = './annotations/annotations_valid_leaf_and_dbm.txt'
 
     #------------------------------------------------------#
     #   设置用到的显卡

@@ -71,7 +71,7 @@ if __name__ == "__main__":
     simplify        = True
     onnx_save_path  = "model_data/models.onnx"
 
-    input_filename = "./dataset/dataset_leaf_and_dbm/annotations_test_leaf_and_dbm.txt"
+    input_filename = "./dataset/dataset_leaf_and_dbm/annotations_test_fungi.txt"
 
     if mode == "predict":
         '''
@@ -98,13 +98,15 @@ if __name__ == "__main__":
                 print(img)
                 continue
             else:
-                [r_image, score] = yolo.detect_image(image, crop = crop, count=count)
-                if score != 0:
-                    r_image.show()
+                r_image = yolo.detect_image(image, crop = crop, count=count)
+                #r_image.show()
+                r_image = np.array(r_image)
+                save_image = cv2.cvtColor(r_image, cv2.COLOR_BGR2RGB)
+                cv2.imwrite(f'dataset/dataset_leaf_and_dbm/test_fungi/test_fungi_result/result_{line.split("/")[-1]}', save_image)
                     #count_with_confidence += 1
                     #total_confidence += score
                     #if count_with_confidence < 10:
                         
         
-        print("Average confidence: " + str(total_confidence/count_with_confidence))
-        print("Total image with object present: "+ str(count_with_confidence))
+        #print("Average confidence: " + str(total_confidence/count_with_confidence))
+        #print("Total image with object present: "+ str(count_with_confidence))

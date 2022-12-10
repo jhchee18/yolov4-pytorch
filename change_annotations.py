@@ -130,8 +130,8 @@ def replace_class_num():
 
 
 label_directory = ".\dataset\dataset_drone_leaf_08_12_2022\label"
-combined_annotation_filename = ".\dataset\dataset_drone_leaf_08_12_2022\combined_annotation.txt"
-image_directory = "./dataset/dataset_leaf_and_dbm/train_valid/"
+combined_annotation_filename = "./dataset/dataset_leaf_and_dbm/annotations_test_fungi.txt"
+image_directory = "./dataset/dataset_leaf_and_dbm/test_fungi/"
 
 def combine_annotation():
     combined_annotation_text = ""
@@ -149,6 +149,17 @@ def combine_annotation():
 
     fout = open(combined_annotation_filename, "w")
     fout.write(combined_annotation_text)
+    fout.close()
+    print("done")
+
+
+
+def generate_test_image_names():
+    combined_names_text = ""
+    for filename in os.listdir(image_directory):
+        combined_names_text = combined_names_text + image_directory + filename + "\n"
+    fout = open(combined_annotation_filename, "w")
+    fout.write(combined_names_text)
     fout.close()
     print("done")
 
@@ -189,4 +200,5 @@ def split_annotation_train_and_valid():
 #replace_class_num()
 #attach_suffix()
 #combine_annotation()
-split_annotation_train_and_valid()
+#split_annotation_train_and_valid()
+generate_test_image_names()

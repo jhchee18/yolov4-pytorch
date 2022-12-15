@@ -77,7 +77,7 @@ class Imageprocess:
             for i in self.strawberrybox:
                 label_txt += i[0] + "\n"
         #np.savetxt(self.save_path + '/test_label/'+ file_name[0:-4] + '.txt', label_txt, fmt='%s')
-        fp = open(self.save_path + '/../label_from_labelimg/'+ file_name[0:-4] + '.txt', 'w')
+        fp = open(self.save_path + '/../test_label_15122022/'+ file_name[0:-4] + '.txt', 'w')
         fp.write(label_txt)
         fp.close()
         
@@ -87,7 +87,7 @@ class Imageprocess:
 
 if __name__ == '__main__':
     # Create image class
-    save_path='./dataset/dataset_drone_leaf_14122022/image_2'
+    save_path='./dataset/test_15122022'
     improcess = Imageprocess(save_path)
     directory = save_path
 

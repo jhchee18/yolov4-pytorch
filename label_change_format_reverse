@@ -2,8 +2,8 @@ import os
 import numpy as np
 from PIL import Image
 
-label_directory = ".\dataset\dataset_drone_leaf_08_12_2022\label"
-image_directory = "./dataset/dataset_drone_leaf_08_12_2022\image"
+label_directory = ".\dataset\dataset_drone_leaf_14122022\label"
+image_directory = "./dataset/dataset_drone_leaf_14122022\image"
 
 
 for filename in os.listdir(label_directory):
@@ -36,23 +36,3 @@ for filename in os.listdir(label_directory):
     fout.close()
 
 print("done")
-
-
-'''
-                centerw, bboxw = inputline[1] * imw, inputline[3] * imw
-                centerh, bboxh = inputline[2] * imh, inputline[4] * imh
-                # 中心宽高相对坐标转换成左上右下绝对坐标
-                xmin = int(centerw - bboxw / 2)
-                xmax = int(centerw + bboxw / 2)
-                ymin = int(centerh - bboxh / 2)
-                ymax = int(centerh + bboxh / 2)
-
-                imw, imh = im.size
-
-                centerh = ((ymin + ymax)/2)/imh
-                centerw = ((xmin + xmax)/2)/imw
-                bboxh = (ymax - ymin)/imh
-                bboxw = (xmax - xmin)/imw
-
-                result = [centerw, centerh, bboxw, bboxh]
-                '''

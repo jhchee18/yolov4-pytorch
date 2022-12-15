@@ -129,9 +129,9 @@ def replace_class_num():
 
 
 
-label_directory = ".\dataset\dataset_drone_leaf_08_12_2022\label"
-combined_annotation_filename = "./dataset/dataset_leaf_and_dbm/annotations_test_fungi.txt"
-image_directory = "./dataset/dataset_leaf_and_dbm/test_fungi/"
+label_directory = ".\dataset\dataset_drone_leaf_14122022\label"
+combined_annotation_filename = "./dataset/dataset_drone_leaf_14122022/combined_annotation.txt"
+image_directory = "./dataset/dataset_leaf_and_dbm/train_valid/"
 
 def combine_annotation():
     combined_annotation_text = ""
@@ -164,8 +164,8 @@ def generate_test_image_names():
     print("done")
 
 
-train_annotation_file = ".\dataset\dataset_drone_leaf_08_12_2022/train_annotation.txt"
-valid_annotation_file = ".\dataset\dataset_drone_leaf_08_12_2022/valid_annotation.txt"
+train_annotation_file = ".\dataset\dataset_drone_leaf_14122022/train_annotation.txt"
+valid_annotation_file = ".\dataset\dataset_drone_leaf_14122022/valid_annotation.txt"
 
 def split_annotation_train_and_valid():
     f = combined_annotation_filename
@@ -196,9 +196,67 @@ def split_annotation_train_and_valid():
 
     print("done")
 
+
+
+def move_file():
+    origin = "./dataset/dataset_leaf_and_dbm/train_valid/"
+    dest = "./dataset/dataset_leaf_and_dbm/removed/"
+    combined_annotation_file = "./dataset/dataset_leaf_and_dbm/annotations_train_leaf_and_dbm.txt"
+    removed_annotation_file = "./dataset/dataset_leaf_and_dbm/removed_annotations_train.txt"
+
+    substring1 = ",2 "
+    substring2 = ",3 "
+    substring3 = ",2\n"
+    substring4 = ",3\n"
+    f = combined_annotation_file
+    # opening the file in read mode
+    file = open(f, "r")
+
+    removed_annotation_text = ""
+    remain_annotation_text = ""
+    for line in file:
+        if (line.find(substring1) != -1 or line.find(substring2) != -1 or line.find(substring3) != -1 or line.find(substring4) != -1):
+            removed_annotation_text = removed_annotation_text + line
+            filename = line.split(" ", 1)[0].split("/", 5)[-1]
+            os.rename(origin + filename, dest + filename)
+        else:
+            remain_annotation_text = remain_annotation_text + line
+
+
+    file.close()
+    # opening the file in write mode
+    fremoved = open(removed_annotation_file, "w")
+    fremoved.write(removed_annotation_text)
+    fremoved.close()
+
+    fremained = open(combined_annotation_file, "w")
+    fremained.write(remain_annotation_text)
+    fremained.close()
+
+    print("done moving files!")
+
+def move_file_without_annotation():
+    origin = "./dataset/dataset_drone_dbm_14122022/image/"
+    dest = "./dataset/dataset_drone_dbm_14122022/removed/"
+    combined_annotation_file = "./dataset/dataset_drone_dbm_14122022/combined_annotation.txt"
+
+    f = combined_annotation_file
+    # opening the file in read mode
+    file = open(f, "r")
+
+    for line in file:
+        filename = line.split(" ", 1)[0].split("/", 5)[-1]
+        os.rename(origin + filename, dest + filename)
+
+    file.close()
+    print("done moving files!")
+
+
 #get_full_annotation_pc()
 #replace_class_num()
 #attach_suffix()
 #combine_annotation()
 #split_annotation_train_and_valid()
-generate_test_image_names()
+#generate_test_image_names()
+#move_file()
+move_file_without_annotation()

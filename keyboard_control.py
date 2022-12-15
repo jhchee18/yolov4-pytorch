@@ -17,7 +17,7 @@ me.streamon()
 
 # mode 1: normal fly mode
 # mode 2: capture mode, capture images consecutively
-mode = 1
+mode = 2
 
 
 
@@ -68,13 +68,13 @@ def show_battery():
     print("===========================================")
 
 
-def cv_detect(frame):
+def cv_detect(frame, is_first_frame):
     t1 = time.time()
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # 转变成Image
     frame = Image.fromarray(np.uint8(frame))
     # 进行检测
-    frame = np.array(yolo.detect_image(frame))
+    frame = np.array(yolo.detect_image(frame, is_first_frame = is_first_frame, crop = False, count = False))
     # RGBtoBGR满足opencv显示格式
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
@@ -95,7 +95,10 @@ fps = 0.0
 '''
 
 if mode == 1:
+    fps = 0.0
+    is_first_frame = True
     while True:
+        t1 = time.time()
         vals = getKeyboardInput()
         if (vals == False):
             me.streamoff()
@@ -104,12 +107,16 @@ if mode == 1:
         else:
             me.send_rc_control(vals[0], vals[1], vals[2], vals[3])
             img = me.get_frame_read().frame
-            img = cv_detect(img)
+            img = cv_detect(img, is_first_frame)
+            is_first_frame = False
             #img = cv2.resize(img, (360, 240))
+            fps  = ( fps + (1./(time.time()-t1)) ) / 2
+            print("fps= %.2f"%(fps))
+            img = cv2.putText(img, "fps= %.2f"%(fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             cv2.imshow("Drone Camera", img)
             cv2.waitKey(1)
 
-        time.sleep(0.05)
+        time.sleep(0.005)
 
 elif mode == 2:
     while True:
@@ -118,7 +125,7 @@ elif mode == 2:
         #img = cv_detect(img)
         #img = cv2.resize(img, (360, 240))
         cv2.imshow("Drone Camera", img)
-        cv2.imwrite(f'dataset/dataset_camera_leaf/{time.time()}.jpg', img)
+        cv2.imwrite(f'dataset/dataset_drone_leaf_14122022/image/leaf_14122022_{time.time()}.jpg', img)
         time.sleep(1)
         cv2.waitKey(1)
         

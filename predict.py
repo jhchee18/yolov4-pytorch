@@ -21,7 +21,7 @@ if __name__ == "__main__":
     #   'heatmap'           表示进行预测结果的热力图可视化，详情查看下方注释。
     #   'export_onnx'       表示将模型导出为onnx，需要pytorch1.7.1以上。
     #----------------------------------------------------------------------------------------------------------#
-    mode = "predict"
+    mode = "video"
     #-------------------------------------------------------------------------#
     #   crop                指定了是否在单张图片预测后对目标进行截取
     #   count               指定了是否进行目标的计数
@@ -39,8 +39,8 @@ if __name__ == "__main__":
     #   video_path、video_save_path和video_fps仅在mode='video'时有效
     #   保存视频时需要ctrl+c退出或者运行到最后一帧才会完成完整的保存步骤。
     #----------------------------------------------------------------------------------------------------------#
-    video_path      = 'http://192.168.1.251/capture'
-    video_save_path = ""
+    video_path      = './img/drone_cam.mp4'
+    video_save_path = f'./img/output/drone_cam{time.time()}.mp4'
     video_fps       = 25.0
     #----------------------------------------------------------------------------------------------------------#
     #   test_interval       用于指定测量fps的时候，图片检测的次数。理论上test_interval越大，fps越准确。
@@ -92,38 +92,40 @@ if __name__ == "__main__":
                 r_image.show()
 
     elif mode == "video":
-        #capture = cv2.VideoCapture(video_path)
-        capture = urlopen(video_path)
+        capture = cv2.VideoCapture(video_path)
         if video_save_path!="":
             fourcc  = cv2.VideoWriter_fourcc(*'XVID')
             size    = (int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
             out     = cv2.VideoWriter(video_save_path, fourcc, video_fps, size)
 
-        '''
         ref, frame = capture.read()
         if not ref:
             raise ValueError("未能正确读取摄像头（视频），请注意是否正确安装摄像头（是否正确填写视频路径）。")
-            '''
 
         fps = 0.0
+        is_first_frame = True
+        frame_counter = 0
+        t_start = 0
         while(True):
+            if (frame_counter == 0):
+                t_start = time.time()
+            frame_counter += 1
             t1 = time.time()
             # 读取某一帧
-            #ref, frame = capture.read()
-            #if not ref:
-            #    break
-            img_resp = urlopen(video_path)
-            imgnp = np.asarray(bytearray(img_resp.read()), dtype="uint8")
-            frame = cv2.imdecode(imgnp, -1)
+            ref, frame = capture.read()
+            if not ref:
+                break
             # 格式转变，BGRtoRGB
             frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
             # 转变成Image
             frame = Image.fromarray(np.uint8(frame))
             # 进行检测
-            frame = np.array(yolo.detect_image(frame))
+            frame = np.array(yolo.detect_image(frame, is_first_frame = is_first_frame, crop = False, count = False))
             # RGBtoBGR满足opencv显示格式
             frame = cv2.cvtColor(frame,cv2.COLOR_RGB2BGR)
             
+            is_first_frame = False
+
             fps  = ( fps + (1./(time.time()-t1)) ) / 2
             print("fps= %.2f"%(fps))
             frame = cv2.putText(frame, "fps= %.2f"%(fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -136,8 +138,11 @@ if __name__ == "__main__":
             if c==27:
                 capture.release()
                 break
-
+        
+        t_end = time.time()
         print("Video Detection Done!")
+        fps = frame_counter / (t_end - t_start)
+        print("fps = " + str(fps))
         capture.release()
         if video_save_path!="":
             print("Save processed video to the path :" + video_save_path)

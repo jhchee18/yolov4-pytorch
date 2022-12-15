@@ -67,15 +67,7 @@ class Imageprocess:
             bbox_out=[' '.join(str(x) for x in bbox_out)]
             bbox_out_all.append(bbox_out)
         return bbox_out_all
-    '''
-    def image_save(self,file_name):
-        #input: strawberry path, stem path, image
-        #set save name: according to the time
-        #output: original image, stem image
-        #self.strawberryimg.save(self.save_path+'/strawberry/image/Strawberry'+self.imgname+'.jpg')
-        if not self.stembox is None:
-            self.stemimg.save(self.save_path + '/stem/image/' + file_name[0:-4] + '.jpg')
-    '''
+
 
     def bbox_save(self,file_name):
         #input: image,bbox
@@ -85,7 +77,7 @@ class Imageprocess:
             for i in self.strawberrybox:
                 label_txt += i[0] + "\n"
         #np.savetxt(self.save_path + '/test_label/'+ file_name[0:-4] + '.txt', label_txt, fmt='%s')
-        fp = open(self.save_path + '/../label_3/'+ file_name[0:-4] + '.txt', 'w')
+        fp = open(self.save_path + '/../label_from_labelimg/'+ file_name[0:-4] + '.txt', 'w')
         fp.write(label_txt)
         fp.close()
         
@@ -95,18 +87,10 @@ class Imageprocess:
 
 if __name__ == '__main__':
     # Create image class
-    save_path='./dataset/dataset_drone_leaf_08_12_2022/image'
+    save_path='./dataset/dataset_drone_leaf_14122022/image_2'
     improcess = Imageprocess(save_path)
-    typename = ["DBM", "black_fungi", "mildew", "healthy"]
-    filename = ["image", "label"]
     directory = save_path
 
-    '''
-    for i in typename:
-        for j in filename:
-            if not os.path.exists(save_path+'/' + i + '/' + j):
-                os.makedirs(save_path+'/'+ i + '/' + j)
-                '''
 
 
     for file_name in os.listdir(directory):

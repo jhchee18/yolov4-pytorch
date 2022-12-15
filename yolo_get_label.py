@@ -144,7 +144,7 @@ class YOLO(object):
             #   将预测框进行堆叠，然后进行非极大抑制
             #---------------------------------------------------------#
             results = self.bbox_util.non_max_suppression(torch.cat(outputs, 1), self.num_classes, self.input_shape, 
-                        image_shape, self.letterbox_image, conf_thres = self.confidence, nms_thres = self.nms_iou)
+                        image_shape, self.letterbox_image, conf_thres = self.confidence, nms_thres = self.nms_iou, is_first_frame=True)
                                                     
             if results[0] is None: 
                 print("No class is detected")

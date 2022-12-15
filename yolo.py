@@ -40,7 +40,7 @@ class YOLO(object):
         #---------------------------------------------------------------------#
         #   只有得分大于置信度的预测框会被保留下来
         #---------------------------------------------------------------------#
-        "confidence"        : 0.50,
+        "confidence"        : 0.30,
         #---------------------------------------------------------------------#
         #   非极大抑制所用到的nms_iou大小
         #---------------------------------------------------------------------#
@@ -110,7 +110,8 @@ class YOLO(object):
     #---------------------------------------------------#
     #   检测图片
     #---------------------------------------------------#
-    def detect_image(self, image, crop = False, count = False):
+    def detect_image(self, image, is_first_frame = False, crop = False, count = False):
+        #print("first frame?" + str(is_first_frame))
         #---------------------------------------------------#
         #   计算输入图片的高和宽
         #---------------------------------------------------#
@@ -143,7 +144,7 @@ class YOLO(object):
             #   将预测框进行堆叠，然后进行非极大抑制
             #---------------------------------------------------------#
             results = self.bbox_util.non_max_suppression(torch.cat(outputs, 1), self.num_classes, self.input_shape, 
-                        image_shape, self.letterbox_image, conf_thres = self.confidence, nms_thres = self.nms_iou)
+                        image_shape, self.letterbox_image, conf_thres = self.confidence, nms_thres = self.nms_iou, is_first_frame = is_first_frame)
 
             if results[0] is None: 
                 print("No class is detected")
@@ -156,7 +157,7 @@ class YOLO(object):
         #   设置字体与边框厚度
         #---------------------------------------------------------#
         font        = ImageFont.truetype(font='model_data/simhei.ttf', size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
-        thickness   = int(max((image.size[0] + image.size[1]) // np.mean(self.input_shape), 1))
+        thickness   = int(min((image.size[0] + image.size[1]) // np.mean(self.input_shape), 1))
         #---------------------------------------------------------#
         #   计数
         #---------------------------------------------------------#
@@ -214,10 +215,22 @@ class YOLO(object):
 
             for i in range(thickness):
                 draw.rectangle([left + i, top + i, right - i, bottom - i], outline=self.colors[c])
-            draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)], fill=self.colors[c])
-            draw.text(text_origin, str(label,'UTF-8'), fill=(0, 0, 0), font=font)
+            #draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)], fill=self.colors[c])
+            #draw.text(text_origin, str(label,'UTF-8'), fill=(0, 0, 0), font=font)
             del draw
 
+        draw = ImageDraw.Draw(image)
+        img_height = image_shape[0]
+        legend_origin_height = img_height - self.num_classes * 30
+        draw.text(np.array([5, legend_origin_height - 30]), "Legend:", fill=(255, 255, 255), font=font)
+        for class_id in range(self.num_classes):
+            
+            class_name = self.class_names[int(class_id)]
+            draw.rectangle([5, legend_origin_height, 25, legend_origin_height + 20], fill=self.colors[class_id])
+            draw.text(np.array([30, legend_origin_height]), class_name, fill=(255, 255, 255), font=font)
+            
+            legend_origin_height = legend_origin_height + 30
+        del draw
         return image
 
     def get_FPS(self, image, test_interval):

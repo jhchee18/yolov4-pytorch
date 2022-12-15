@@ -125,7 +125,7 @@ elif mode == 2:
         #img = cv_detect(img)
         #img = cv2.resize(img, (360, 240))
         cv2.imshow("Drone Camera", img)
-        cv2.imwrite(f'dataset/dataset_drone_leaf_14122022/image/leaf_14122022_{time.time()}.jpg', img)
+        cv2.imwrite(f'dataset/dataset_leaf_and_dbm/test_15122022/leaf_dbm_15122022_{time.time()}.jpg', img)
         time.sleep(1)
         cv2.waitKey(1)
         

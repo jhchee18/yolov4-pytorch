@@ -155,13 +155,15 @@ def combine_annotation():
 
 
 def generate_test_image_names():
+    test_image_directory = "./dataset/dataset_leaf_and_dbm/test_15122022/"
+    combined_annotation_filename = "./dataset/dataset_leaf_and_dbm/annotations_test_leaf_and_dbm_15122022.txt"
     combined_names_text = ""
-    for filename in os.listdir(image_directory):
-        combined_names_text = combined_names_text + image_directory + filename + "\n"
+    for filename in os.listdir(test_image_directory):
+        combined_names_text = combined_names_text + test_image_directory + filename + "\n"
     fout = open(combined_annotation_filename, "w")
     fout.write(combined_names_text)
     fout.close()
-    print("done")
+    print("done generate_test_image_names")
 
 
 train_annotation_file = ".\dataset\dataset_drone_leaf_14122022/train_annotation.txt"
@@ -257,6 +259,6 @@ def move_file_without_annotation():
 #attach_suffix()
 #combine_annotation()
 #split_annotation_train_and_valid()
-#generate_test_image_names()
+generate_test_image_names()
 #move_file()
-move_file_without_annotation()
+#move_file_without_annotation()

@@ -79,6 +79,7 @@ class YOLO(object):
         self.class_names, self.num_classes  = get_classes(self.classes_path)
         self.anchors, self.num_anchors      = get_anchors(self.anchors_path)
         self.bbox_util                      = DecodeBox(self.anchors, self.num_classes, (self.input_shape[0], self.input_shape[1]), self.anchors_mask)
+        self.prev_class_count               = [np.zeros(self.num_classes) for i in range(10)]
 
         #---------------------------------------------------#
         #   画框设置不同的颜色
@@ -170,6 +171,8 @@ class YOLO(object):
                     print(self.class_names[i], " : ", num)
                 classes_nums[i] = num
             print("classes_nums:", classes_nums)
+            self.prev_class_count.pop(0)
+            self.prev_class_count.append(classes_nums)
         #---------------------------------------------------------#
         #   是否进行目标的裁剪
         #---------------------------------------------------------#
@@ -215,8 +218,6 @@ class YOLO(object):
 
             for i in range(thickness):
                 draw.rectangle([left + i, top + i, right - i, bottom - i], outline=self.colors[c])
-            #draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)], fill=self.colors[c])
-            #draw.text(text_origin, str(label,'UTF-8'), fill=(0, 0, 0), font=font)
             del draw
 
         draw = ImageDraw.Draw(image)
@@ -227,11 +228,20 @@ class YOLO(object):
             
             class_name = self.class_names[int(class_id)]
             draw.rectangle([5, legend_origin_height, 25, legend_origin_height + 20], fill=self.colors[class_id])
-            draw.text(np.array([30, legend_origin_height]), class_name, fill=(255, 255, 255), font=font)
+            draw.text(np.array([30, legend_origin_height]), class_name + ": " + str(self.get_average_object_count(class_id)), fill=(255, 255, 255), font=font)
             
             legend_origin_height = legend_origin_height + 30
         del draw
         return image
+
+    def get_average_object_count(self, class_id):
+        total_count = 0
+        size = 0
+        for i in self.prev_class_count:
+            total_count += i[int(class_id)]
+            size += 1
+        return round(total_count / size)
+            
 
     def get_FPS(self, image, test_interval):
         image_shape = np.array(np.shape(image)[0:2])

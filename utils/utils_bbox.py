@@ -137,7 +137,21 @@ class DecodeBox():
         boxes *= np.concatenate([image_shape, image_shape], axis=-1)
         return boxes
 
-    def non_max_suppression(self, prediction, num_classes, input_shape, image_shape, letterbox_image, conf_thres=0.5, nms_thres=0.4):
+
+    
+    def non_max_suppression(self, prediction, num_classes, input_shape, image_shape, letterbox_image, conf_thres=0.5, nms_thres=0.4, is_first_frame = False):
+        
+        global temp_prediction
+        global first_frame
+        first_frame = is_first_frame
+        if not first_frame:
+            pre_predic = temp_prediction
+        else:
+            pre_predic = 0
+        temp_prediction = prediction[..., 4]		#对本帧的预测结果做缓存
+        prediction[..., 4] += pre_predic * 0.5		
+        
+        
         #----------------------------------------------------------#
         #   将预测结果的格式转换成左上角右下角的格式。
         #   prediction  [batch_size, num_anchors, 85]

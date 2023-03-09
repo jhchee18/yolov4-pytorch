@@ -120,7 +120,7 @@ if __name__ == "__main__":
             # 转变成Image
             frame = Image.fromarray(np.uint8(frame))
             # 进行检测
-            frame = np.array(yolo.detect_image(frame, is_first_frame = is_first_frame, crop = False, count = False))
+            frame = np.array(yolo.detect_image(frame, is_first_frame = is_first_frame, crop = crop, count=count))
             # RGBtoBGR满足opencv显示格式
             frame = cv2.cvtColor(frame,cv2.COLOR_RGB2BGR)
             

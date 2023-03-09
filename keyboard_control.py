@@ -17,7 +17,7 @@ me.streamon()
 
 # mode 1: normal fly mode
 # mode 2: capture mode, capture images consecutively
-mode = 2
+mode = 1
 
 
 
@@ -50,7 +50,7 @@ def getKeyboardInput():
         show_battery()
         return False
     if kp.getKey("z"):
-        cv2.imwrite(f'dataset/dataset_camera_leaf/{time.time()}.jpg', img)
+        cv2.imwrite(f'dataset/dataset_aphids/{time.time()}.jpg', img)
         time.sleep(0.3)
 
 
@@ -71,28 +71,17 @@ def show_battery():
 def cv_detect(frame, is_first_frame):
     t1 = time.time()
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # 转变成Image
+    # Convert to Image
     frame = Image.fromarray(np.uint8(frame))
-    # 进行检测
-    frame = np.array(yolo.detect_image(frame, is_first_frame = is_first_frame, crop = False, count = False))
-    # RGBtoBGR满足opencv显示格式
+    # Detect
+    frame = np.array(yolo.detect_image(frame, is_first_frame = is_first_frame, crop = False, count = True))
+    # RGBtoBGR
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
-    '''
-    fps = (fps + (1. / (time.time() - t1))) / 2
-    print("fps= %.2f" % (fps))
-    frame = cv2.putText(frame, "fps= %.2f" % (
-        fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    '''
     
     return frame
 
 
-    
-'''
-global fps
-fps = 0.0
-'''
+
 
 if mode == 1:
     fps = 0.0
@@ -125,7 +114,7 @@ elif mode == 2:
         #img = cv_detect(img)
         #img = cv2.resize(img, (360, 240))
         cv2.imshow("Drone Camera", img)
-        cv2.imwrite(f'dataset/dataset_leaf_and_dbm/test_15122022/leaf_dbm_15122022_{time.time()}.jpg', img)
+        cv2.imwrite(f'dataset/dataset_aphids/{time.time()}.jpg', img)
         time.sleep(1)
         cv2.waitKey(1)
         

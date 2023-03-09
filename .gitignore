@@ -9,6 +9,7 @@ logs/
 model_data/
 img/
 .temp_map_out/
+annotations/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -583,5 +584,3 @@ dataset/dataset_leaf_and_dbm_old/test_label/light-4904_JPG.rf.27414615605a6e1c30
 dataset/dataset_leaf_and_dbm_old/test_label/light-4972_JPG.rf.2ef5d0698e3450545d788e76a20cebd2.txt
 dataset/dataset_leaf_and_dbm_old/test_label/light-4982_JPG.rf.5c44d204fa7adb5d86ffa247eac5c6eb.txt
 dataset/dataset_leaf_and_dbm_old/test_label/light-4994_JPG.rf.08fcbf158a23162b4168f69e81d4f375.txt
-dataset/dataset_leaf_and_dbm/annotations_valid_leaf_and_dbm.txt
-dataset/dataset_leaf_and_dbm/annotations_train_leaf_and_dbm.txt

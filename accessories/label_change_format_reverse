@@ -1,0 +1,38 @@
+import os
+import numpy as np
+from PIL import Image
+
+label_directory = ".\dataset\dataset_aphids\label"
+image_directory = "./dataset/dataset_aphids\image"
+
+
+for filename in os.listdir(label_directory):
+
+    f = os.path.join(label_directory, filename)
+    file = open(f, "r")
+    im = Image.open(image_directory + '/' + filename[:-4] + '.jpg')
+    imw, imh = im.size
+
+    replacement = ""
+
+    for line in file:
+        changes = ""
+        blocks = line.split()
+
+        classid, centerw, centerh, bboxw, bboxh = int(blocks[0]), float(blocks[1]) * imw, float(blocks[2]) * imh, float(blocks[3]) * imw, float(blocks[4]) * imh
+
+        xmin = int(centerw - bboxw / 2)
+        xmax = int(centerw + bboxw / 2)
+        ymin = int(centerh - bboxh / 2)
+        ymax = int(centerh + bboxh / 2)
+
+
+        changes = str(xmin) + "," + str(ymin) + "," + str(xmax) + "," + str(ymax) + "," + str(classid) + "\n"
+        replacement = replacement + changes
+
+    file.close()
+    fout = open(f, "w")
+    fout.write(replacement)
+    fout.close()
+
+print("done")

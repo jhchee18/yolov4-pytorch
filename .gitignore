@@ -141,7 +141,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 *.jpg
-!img/DroneControl.jpg
+!*img/DroneControl.jpg
 *.json
 annotations/annotations_train_leaf_fungi.txt
 annotations/annotations_valid_leaf_fungi.txt

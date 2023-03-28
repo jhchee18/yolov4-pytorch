@@ -39,9 +39,10 @@ if __name__ == "__main__":
     #   video_path、video_save_path和video_fps仅在mode='video'时有效
     #   保存视频时需要ctrl+c退出或者运行到最后一帧才会完成完整的保存步骤。
     #----------------------------------------------------------------------------------------------------------#
-    video_path      = './img/drone_cam.mp4'
-    video_save_path = f'./img/output/drone_cam{time.time()}.mp4'
-    video_fps       = 25.0
+    video_file = "drone_cam_IMG_0581"
+    video_path      = './img/' + video_file + '.mp4'
+    video_save_path = f'./img/output/' + video_file + '_no_class_count.mp4'
+    video_fps       = 11.0
     #----------------------------------------------------------------------------------------------------------#
     #   test_interval       用于指定测量fps的时候，图片检测的次数。理论上test_interval越大，fps越准确。
     #   fps_image_path      用于指定测试的fps图片

@@ -33,24 +33,24 @@ recorded_path = ""
 # Create a figure and add a 3D axis to it
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-
+fig.canvas.set_window_title('Path Tracking')
 
 # Set the axis limits to be -1 and 1, with an interval of 1
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
-ax.set_xticks(np.arange(-100, 100, 20))
-ax.set_yticks(np.arange(-100, 100, 20))
-ax.set_zticks(np.arange(-100, 100, 20))
+ax.set_xticks(np.arange(-80, 80, 20))
+ax.set_yticks(np.arange(-80, 80, 20))
+ax.set_zticks(np.arange(-20, 140, 20))
 
 # Create an array to store the x, y, and z coordinates of the points
-n_points = 100
+n_points = 1000
 xs = np.zeros(n_points)
 ys = np.zeros(n_points)
 zs = np.zeros(n_points)
 
 # Use the scatter method to create a scatter plot of the points
-points = ax.scatter(xs, ys, zs)
+points = ax.scatter(xs, ys, zs, s=5)
 
 ax.set_xlabel('X-Axis (cm)')
 ax.set_ylabel('Y-Axis (cm)')
@@ -58,8 +58,8 @@ ax.set_zlabel('Z-Axis (cm)')
 
 
 ### PARAMETERS ###
-fSpeed = 117 / 10 # Forward Speed in cm/s
-aSpeed = 360 / 10  # Angular Speed Degrees/s  (50d/s)
+fSpeed = 117 / 20 # Forward Speed in cm/s
+aSpeed = 360 / 40  # Angular Speed Degrees/s  (50d/s)
 interval = 0.25
 dInterval = fSpeed * interval
 aInterval = aSpeed * interval
@@ -74,7 +74,7 @@ yaw = 0
 
 def getKeyboardInput():
     lr, fb, ud, yv = 0, 0, 0, 0
-    speed = 50
+    speed = 25
     
     global xs, ys, zs
     global x, y, yaw, a
@@ -132,7 +132,7 @@ def getKeyboardInput():
         cv2.imwrite(f'dataset/dataset_aphids/{time.time()}.jpg', img)
         time.sleep(0.3)
     if kp.getKey("r"): # Follow fly path
-        fly_path = read_fly_path(demo_file_path)
+        fly_path = read_path(demo_file_path)
         return fly_path
 
 
@@ -148,18 +148,14 @@ def getKeyboardInput():
     return [lr, fb, ud, yv]
 
 
-def read_fly_path(demo_file_path):
+def read_path(file_path):
     fly_path = []
-
-    with open(demo_file_path, "r") as file:
+    with open(file_path, "r") as file:
         for line in file:
             line = line.strip()
-            
             # Convert the line into a list using eval() function
             command = eval(line)
-            
             fly_path.append(command)
-
     file.close()
     return fly_path
 
@@ -186,6 +182,104 @@ def cv_detect(frame, is_first_frame):
     
     return frame
 
+def display_auto(image, is_auto):
+
+    # Define the box coordinates
+    height, width, channels = image.shape
+    x1, y1 = int(width/2-40), 5
+    x2, y2 = int(width/2+40), 45
+
+    # Define the font and text position
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    if is_auto:
+        text = "AUTO"
+    else:
+        text = "MANUAL"
+    text_size, _ = cv2.getTextSize(text, font, 0.5, 1)
+    text_x = x1 + (x2 - x1 - text_size[0]) // 2
+    text_y = y1 + (y2 - y1 + text_size[1]) // 2
+
+    # Draw the red-filled box
+    if is_auto:
+        cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), -1)
+    else:
+        cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), -1)
+    # Put the text inside the box
+    cv2.putText(image, text, (text_x, text_y), font, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+    
+    return image
+
+
+def draw_plot(command):
+    global xs, ys, zs
+    global x, y, yaw, a
+    d = 0
+
+    xs[:-1] = xs[1:]
+    ys[:-1] = ys[1:]
+    zs[:-1] = zs[1:]
+
+    if (command[0] != 0): #lr
+        if (command[0] < 0): #LEFT
+            d = dInterval
+            a = -180
+        else:
+            d = -dInterval
+            a = 180
+    if (command[1] != 0): #fb
+        if (command[1] > 0): #UP
+            d = -dInterval
+            a = -90
+        else:
+            d = dInterval
+            a = 270
+    if (command[2] != 0): #ud
+        if (command[2] > 0):
+            zs[-1] += dInterval
+        else:
+            zs[-1] += -dInterval
+    if (command[3] != 0): #yv
+        if (command[3] < 0):
+            yaw += aInterval
+        else:
+            yaw -= aInterval
+    
+    time.sleep(0.01)
+    a += yaw
+    xs[-1] += int(d * math.cos(math.radians(a)))
+    ys[-1] += int(d * math.sin(math.radians(a)))
+
+    points._offsets3d = (xs, ys, zs)
+
+
+
+def display_battery(img):
+    img_height, img_width, img_channels = img.shape
+    current_battery = me.get_battery()
+    x_speed = -me.get_speed_x()
+    y_speed = -me.get_speed_y()
+    z_speed = -me.get_speed_z()
+    height = me.get_height()
+
+    speed_text = "Speed(m/s): {}, {}, {}".format(x_speed, y_speed, z_speed)
+    speed_text_size, _ = cv2.getTextSize(speed_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+    x_speed = int(img_width - speed_text_size[0] -5)
+    img = cv2.putText(img, speed_text, (x_speed, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+    height_text = "Altitude(cm): {}".format(height)
+    height_text_size, _ = cv2.getTextSize(height_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+    x_height = img_width - height_text_size[0] -5
+    img = cv2.putText(img, height_text, (x_height , 35), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+    battery_text = "Battery: {}%".format(current_battery)
+    battery_text_size, _ = cv2.getTextSize(battery_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+    x_battery = img_width - battery_text_size[0] -5
+    img = cv2.putText(img, battery_text, (x_battery, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+    return img
+
+
+
 
 
 if mode == 1:
@@ -204,7 +298,7 @@ if mode == 1:
             plt.draw()
             me.send_rc_control(vals[0], vals[1], vals[2], vals[3])
             img = me.get_frame_read().frame
-            img = cv_detect(img, is_first_frame)
+            img, class_count = cv_detect(img, is_first_frame)
             is_first_frame = False
             #img = cv2.resize(img, (360, 240))
             fps  = ( fps + (1./(time.time()-t1)) ) / 2
@@ -232,6 +326,9 @@ elif mode == 2:
 elif mode == 3:
     fps = 0.0
     is_first_frame = True
+    mgr = plt.get_current_fig_manager()
+    mgr.window.wm_geometry("+0+0")
+    all_class_count = ""
 
 
     while True:
@@ -240,21 +337,29 @@ elif mode == 3:
         if (vals == False):
             me.streamoff()
             cv2.destroyAllWindows()
+
             break
 
         # Check if the list is a nested list
         elif all(isinstance(elem, list) for elem in vals):
             for command in vals:
+                t1 = time.time()
+                draw_plot(command)
+                if kp.getKey("b"):
+                    break # interrupt the path following
                 plt.pause(0.01)
                 plt.draw()
                 me.send_rc_control(command[0], command[1], command[2], command[3])
                 img = me.get_frame_read().frame
                 img = cv_detect(img, is_first_frame)
+                #all_class_count += str(class_count) + "\n"
                 is_first_frame = False
                 #img = cv2.resize(img, (360, 240))
                 fps  = ( fps + (1./(time.time()-t1)) ) / 2
                 print("fps= %.2f"%(fps))
                 img = cv2.putText(img, "fps= %.2f"%(fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                img = display_auto(img, True)
+                img = display_battery(img)
                 cv2.imshow("Drone Camera", img)
                 cv2.waitKey(1)
 
@@ -265,11 +370,14 @@ elif mode == 3:
             me.send_rc_control(vals[0], vals[1], vals[2], vals[3])
             img = me.get_frame_read().frame
             img = cv_detect(img, is_first_frame)
+            #all_class_count += str(class_count) + "\n"
             is_first_frame = False
             #img = cv2.resize(img, (360, 240))
             fps  = ( fps + (1./(time.time()-t1)) ) / 2
             print("fps= %.2f"%(fps))
             img = cv2.putText(img, "fps= %.2f"%(fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            img = display_auto(img, False)
+            img = display_battery(img)
             cv2.imshow("Drone Camera", img)
             cv2.waitKey(1)
 

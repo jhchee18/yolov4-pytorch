@@ -111,7 +111,7 @@ class YOLO(object):
     #---------------------------------------------------#
     #   检测图片
     #---------------------------------------------------#
-    def detect_image(self, image, is_first_frame = False, crop = False, count = False):
+    def detect_image(self, image, is_first_frame = False, crop = False, count = False, return_count = False):
         #print("first frame?" + str(is_first_frame))
         #---------------------------------------------------#
         #   计算输入图片的高和宽
@@ -149,7 +149,10 @@ class YOLO(object):
 
             if results[0] is None: 
                 print("No class is detected")
-                return image
+                if return_count:
+                    return image, []
+                else:
+                    return image
 
             top_label   = np.array(results[0][:, 6], dtype = 'int32')
             top_conf    = results[0][:, 4] * results[0][:, 5]
@@ -224,14 +227,20 @@ class YOLO(object):
         img_height = image_shape[0]
         legend_origin_height = img_height - self.num_classes * 30
         draw.text(np.array([5, legend_origin_height - 30]), "Legend:", fill=(255, 255, 255), font=font)
+        class_counts = []
         for class_id in range(self.num_classes):
             
             class_name = self.class_names[int(class_id)]
             draw.rectangle([5, legend_origin_height, 25, legend_origin_height + 20], fill=self.colors[class_id])
-            draw.text(np.array([30, legend_origin_height]), class_name + ": " + str(self.get_average_object_count(class_id)), fill=(255, 255, 255), font=font)
+            class_count = self.get_average_object_count(class_id)
+            #class_count = np.sum(top_label == class_id)
+            class_counts.append(class_count)
+            draw.text(np.array([30, legend_origin_height]), class_name + ": " + str(class_count), fill=(255, 255, 255), font=font)
             
             legend_origin_height = legend_origin_height + 30
         del draw
+        if return_count:
+            image, class_counts
         return image
 
     def get_average_object_count(self, class_id):

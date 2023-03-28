@@ -3,7 +3,8 @@ import pygame
  
 def init():
     pygame.init()
-    win = pygame.display.set_mode((400, 400))
+    win = pygame.display.set_mode((400, 0))
+    pygame.display.set_caption("Drone Control")
  
  
 def getKey(keyName):

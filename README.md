@@ -12,6 +12,7 @@
 8. [预测步骤 How2predict](#预测步骤)
 9. [评估步骤 How2eval](#评估步骤)
 10. [参考资料 Reference](#Reference)
+11. [Drone Control] (#Drone Control)
 
 ## Top News
 **`2022-04`**:**支持多GPU训练，新增各个种类目标数量计算，新增heatmap。**  
@@ -179,3 +180,24 @@ img/street.jpg
 https://github.com/qqwweee/keras-yolo3/  
 https://github.com/Cartucho/mAP  
 https://github.com/Ma-Dan/keras-yolo4  
+
+## Drone Control
+All command to be executed in Pygame Window in order to control the drone.
+1. Keyboard key 'E': Take off
+2. Keyboard key 'Q': Land
+3. Keyboard key 'W': Move Up (Throttle Upward)
+4. Keyboard key 'S': Move Down (Throttle Downward)
+5. Keyboard key 'A': Rotate Left (Yaw CCW)
+6. Keyboard key 'D': Rotate Right (Yaw CW)
+7. Arrow key '↑ Up': Move Forward (Pitch Forward)
+8. Arrow key '↓ Down': Move Backward (Pitch Backward)
+9. Arrow key '← Left': Bend Left (Roll Leftward)
+10. Arrow key '→ Right': Bend Right (Roll Rightward)
+
+11. Keyboard key 'R': Run Precorded Path
+12. Keyboard key 'B': Break (terminate) running precorded path
+13. Keyboard key 'Z': Capture photo
+14. Keyboard key 'P': Terminate execution
+15. 'Ctrl + C': Exit (Keyboard Interrupt in terminal)
+
+![Drone Control Illustration](./img/Drone%20Control.jpg)

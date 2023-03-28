@@ -2,7 +2,7 @@
 ---
 
 ## 目录
-1. [Drone Control] (#Drone Control)
+1. [Drone Control](#drone-control)
 2. [仓库更新 Top News](#仓库更新)
 3. [相关仓库 Related code](#相关仓库)
 4. [性能情况 Performance](#性能情况)
@@ -34,7 +34,7 @@ All command to be executed in Pygame Window in order to control the drone.
 14. Keyboard key 'P': Terminate execution
 15. 'Ctrl + C': Exit (Keyboard Interrupt in terminal)
 
-![Drone Control Illustration](./img/DroneControl.jpg)
+![Drone Control Illustration](./DroneControl.png)
 
 
 ## Top News
